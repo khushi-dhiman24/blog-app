@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"> -->
     <title>Blog - Welcome</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @vite('resources/css/app.css') <!-- Only if you are using Breeze/Tailwind -->
+    @vite('resources/css/app.css') <
 </head>
 <body class="bg-gray-100 text-gray-900">
-    <!-- Navbar -->
-    <!-- Navbar -->
     <nav class="bg-blue-600 p-4 text-white shadow-md">
         <div class="container mx-auto flex justify-between items-center">
             <a href="{{ url('/') }}" class="font-bold text-lg">My Blog</a>
@@ -33,8 +30,6 @@
             </ul>
         </div>
     </nav>
-
-    <!-- Content -->
     <div class="container mx-auto mt-12 text-center">
         <h1 class="text-4xl font-bold mb-4">Welcome to My Blog</h1>
         <p class="text-lg text-gray-700 mb-6">
@@ -55,7 +50,5 @@
             </a>
         @endauth
     </div>
-
- 
 </body>
 </html>

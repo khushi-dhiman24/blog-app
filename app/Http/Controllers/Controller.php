@@ -21,6 +21,8 @@ use App\Models\LastSearches;
 use Jenssegers\Agent\Agent;
 use Carbon\Carbon;
 
+
+
 abstract class Controller
 {
     protected function cat_return($category_id)
@@ -381,12 +383,12 @@ abstract class Controller
             $randomSubCategories = array_filter($randomSubCategories);
 
            $busIds = array_column($businessFinal, 'id');
-$businessTimes = DB::table('business_times')->whereIn('business_id', $busIds)->get()->keyBy('business_id');
+           $businessTimes = DB::table('business_times')->whereIn('business_id', $busIds)->get()->keyBy('business_id');
 
-foreach ($businessFinal as $bus) {
-    $business_times = $businessTimes[$bus['id']] ?? null;
-    $time = $this->buildBusinessTimeString($business_times);
-}
+           foreach ($businessFinal as $bus) {
+            $business_times = $businessTimes[$bus['id']] ?? null;
+            $time = $this->buildBusinessTimeString($business_times);
+        }
 
             $thumb = $fetch_all_plans[$bus['plan_id']]['thumb_icon'] ?? null;
             $lm_trust = $fetch_all_plans[$bus['plan_id']]['stamp_icon'] ?? null;
