@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use App\Models\Business;
-use App\Models\Cities;
-use App\Models\States;
-use App\Models\SubSubCategory;
+use App\Models\New_Businesses as Business;
+use App\Models\City as Cities;
+use App\Models\State as States;
+// use App\Models\SubSubCategory; // Not needed
 use App\Models\SubCategory;
 use App\Models\Category;
 use App\Models\Plan;
@@ -23,7 +23,7 @@ use Carbon\Carbon;
 
 
 
-abstract class Controller
+class Controller
 {
     protected function cat_return($category_id)
     {
@@ -224,8 +224,11 @@ abstract class Controller
 
         $lat = $lat ?? '28.7041';
         $long = $long ?? '77.1025';
-        $customer_name = Auth::guard('customer')->check() ? Auth::guard('customer')->user()->name : '';
-        $customer_number = Auth::guard('customer')->check() ? Auth::guard('customer')->user()->phone : '';
+        // Temporarily disable customer auth until guard is configured
+        $customer_name = '';
+        $customer_number = '';
+        // $customer_name = Auth::guard('customer')->check() ? Auth::guard('customer')->user()->name : '';
+        // $customer_number = Auth::guard('customer')->check() ? Auth::guard('customer')->user()->phone : '';
 
         if (!isset($request->page)) {
             LastSearches::create([
@@ -318,12 +321,16 @@ abstract class Controller
 
         $minLat = $lat - $latDiff; $maxLat = $lat + $latDiff;
         $minLon = $long - $lonDiff; $maxLon = $long + $lonDiff;
-        $baseBusinessQuery = Business::select(
+        $baseBusinessQuery = Business::leftJoin('cities', 'cities.id', '=', 'new_businesses.city')
+    ->leftJoin('states', 'states.id', '=', 'new_businesses.state')
+    ->select(
     'new_businesses.id','new_businesses.plan_id','new_businesses.owner_name','new_businesses.shop_name',
     'new_businesses.owner_email','new_businesses.address','new_businesses.area','new_businesses.lat_long','new_businesses.landmark',
     'new_businesses.pincode','new_businesses.city','new_businesses.state','new_businesses.business_type','new_businesses.established',
     'new_businesses.photo1','new_businesses.photo2','new_businesses.phone_number','new_businesses.whatsapp_no','new_businesses.rating_count',
-    'new_businesses.subcategories','new_businesses.category_id','new_businesses.rating_value','cities.name as city', 'states.name as state'
+    'new_businesses.subcategories','new_businesses.category_id','new_businesses.rating_value',
+    'cities.name as city_name', 'states.name as state_name',
+    DB::raw("$lat_long_query AS distance")
     )
     ->whereBetween(DB::raw("CAST(SUBSTRING_INDEX(lat_long, ',', 1) AS DECIMAL(10,6))"), [$minLat, $maxLat])
     ->whereBetween(DB::raw("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(lat_long, ',', 2), ',', -1) AS DECIMAL(10,6))"), [$minLon, $maxLon])
@@ -382,20 +389,16 @@ abstract class Controller
             }
             $randomSubCategories = array_filter($randomSubCategories);
 
-           $busIds = array_column($businessFinal, 'id');
-           $businessTimes = DB::table('business_times')->whereIn('business_id', $busIds)->get()->keyBy('business_id');
-
-           foreach ($businessFinal as $bus) {
-            $business_times = $businessTimes[$bus['id']] ?? null;
+            // Get business times for this specific business
+            $business_times = DB::table('business_times')->where('business_id', $bus['id'])->first();
             $time = $this->buildBusinessTimeString($business_times);
-        }
 
             $thumb = $fetch_all_plans[$bus['plan_id']]['thumb_icon'] ?? null;
             $lm_trust = $fetch_all_plans[$bus['plan_id']]['stamp_icon'] ?? null;
 
             // photo
             if (empty($bus['photo1'])) {
-                $banner_photo = $banners[$bus['id']]->first() ?? null;
+                $banner_photo = isset($banners[$bus['id']]) ? $banners[$bus['id']]->first() : null;
                 $bus['photo1'] = $banner_photo ? url(str_replace('public', 'storage', $banner_photo->photo)) : url('');
             } else {
                 $bus['photo1'] = url(str_replace('public', 'storage', $bus['photo1']));
@@ -409,7 +412,7 @@ abstract class Controller
             }
             $bus['distance'] = $distance;
             $bus['verified'] = isset($otpCounts[$bus['phone_number']]) && $otpCounts[$bus['phone_number']] ? '<span class="badge bg-success mx-3">Verified</span>' : '';
-            $bscity = $this->sanitizeForUrl($bus['city'] ?? '');
+            $bscity = $this->sanitizeForUrl($bus['city_name'] ?? $bus['city'] ?? '');
             $shop_name = $this->sanitizeForUrl($bus['shop_name'] ?? '');
             $address = $this->sanitizeForUrl($bus['address'] ?? '');
             $bus['webpage_link'] = strtolower(url($bscity . '/' . $shop_name . '/' . $address . '/' . $this->generate_bus_id($bus['id'])));
@@ -446,7 +449,7 @@ abstract class Controller
             return null;
         }
 
-        $advertismentbanner = AdvertismentBanner::leftJoin('businesses', 'businesses.id', 'advertisement_banner.business_id')
+        $advertismentbanner = AdvertismentBanner::leftJoin('new_businesses', 'new_businesses.id', 'advertisement_banner.business_id')
                                 ->where('location', 'LIKE', '%India%')->where('category', 0)->get()->toArray();
 
         $za = "Top " . ucfirst(str_replace('-', ' ', $request->search_content ?? '')) . " in " . $city;

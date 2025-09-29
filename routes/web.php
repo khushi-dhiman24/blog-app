@@ -11,5 +11,12 @@ Route::get('/', function (Request $request) {
     return view('home', compact('urlData'));
 });
 
-Route::get('/{city}/{category}/lmid-{id}', [App\Http\Controllers\Controller::class, 'index']);
+// Main route for business listings with lmid
+Route::get('/{city}/{search_content}/lmid-{id}', [App\Http\Controllers\Controller::class, 'index'])
+    ->name('business.listing');
+
+// Additional routes that might be needed based on the Controller logic
+Route::get('/{city}/{search}', [App\Http\Controllers\Controller::class, 'index'])
+    ->where('search', '.*')
+    ->name('business.search');
 
