@@ -118,11 +118,11 @@
                                     <div class="list-group-item cat-box img-hover bg-transparent p-0">
                                         <a href="javascript:void(0);" class="category-link"
                                             data-image="https://www.likeme.co.in/storage/photos/21896-1695201768LikeMe.webp">
-                                            <h6 class="line-clamp-1">A C Repair & Services</h6>
+                                            <h6 class="line-clamp-1">A-C Repair & Services</h6>
                                         </a>
                                     </div>
                                 </div>
-                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 px-2">
+                                <div class="">  
                                     <div class="img img-hover overflow-hidden">
                                         <a href="https://www.likeme.co.in/delhi/car-repair/lmid-00201215"
                                             target="_blank" aria-label="categories"><img
